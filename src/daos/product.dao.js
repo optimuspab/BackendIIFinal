@@ -1,18 +1,25 @@
-import mongoose from 'mongoose';
-import mongoosePaginate from 'mongoose-paginate-v2';
+import Product from './models/product.model.js';
 
-const productSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  price: { type: Number, required: true },
-  status: { type: Boolean, default: true },
-  stock: { type: Number, required: true },
-  category: { type: String, required: true },
-  thumbnails: [String]
-});
+class ProductDAO {
+  async findAll() {
+    return await Product.find();
+  }
 
-productSchema.plugin(mongoosePaginate);
+  async findById(id) {
+    return await Product.findById(id);
+  }
 
-const Product = mongoose.model('Product', productSchema);
+  async create(data) {
+    return await Product.create(data);
+  }
 
-export default Product;
+  async update(id, data) {
+    return await Product.findByIdAndUpdate(id, data, { new: true });
+  }
+
+  async delete(id) {
+    return await Product.findByIdAndDelete(id);
+  }
+}
+
+export default ProductDAO;

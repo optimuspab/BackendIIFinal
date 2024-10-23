@@ -1,15 +1,17 @@
-import Product from '../daos/product.dao.js';
+import ProductDAO from '../daos/product.dao.js';
 import fs from 'fs';
 import path from 'path';
+
+const productDAO = new ProductDAO();
 
 class ProductManager {
     async addProduct(title, description, price, stock, category, thumbnails = []) {
         console.log('Adding product:', { title, description, price, stock, category, thumbnails });
     
-        const newProduct = new Product({ title, description, price, stock, category, thumbnails });
-        
+        const newProductData = { title, description, price, stock, category, thumbnails };
+
         try {
-            const savedProduct = await newProduct.save();
+            const savedProduct = await productDAO.create(newProductData);
             const successMsg = `Producto agregado con ID ${savedProduct._id}`;
             console.log('Product saved:', savedProduct);
             return { success: true, message: successMsg, newProduct: savedProduct };
@@ -21,7 +23,7 @@ class ProductManager {
 
     async getProducts(filter = {}, options = {}) {
         try {
-            const products = await Product.paginate(filter, options);
+            const products = await productDAO.findAll(filter, options);
             return {
                 docs: products.docs,
                 totalDocs: products.totalDocs,
@@ -40,7 +42,7 @@ class ProductManager {
 
     async getProductById(id) {
         try {
-            const product = await Product.findById(id);
+            const product = await productDAO.findById(id);
             if (!product) {
                 const errorMsg = `No existe producto con el ID ${id}.`;
                 return { success: false, message: errorMsg };
@@ -53,7 +55,7 @@ class ProductManager {
 
     async updateProduct(id, updatedInfo) {
         try {
-            const product = await Product.findByIdAndUpdate(id, updatedInfo, { new: true });
+            const product = await productDAO.update(id, updatedInfo);
             if (!product) {
                 const errorMsg = `El producto con el ID ${id} no se encuentra.`;
                 return { success: false, message: errorMsg };
@@ -66,7 +68,7 @@ class ProductManager {
 
     async deleteProduct(id) {
         try {
-            const product = await Product.findByIdAndDelete(id);
+            const product = await productDAO.delete(id);
             if (!product) {
                 console.log(`El producto con el ID ${id} no se encuentra.`);
                 return { success: false, message: `Producto con ID ${id} no encontrado` };
@@ -97,4 +99,4 @@ class ProductManager {
     }    
 }
 
-module.exports = new ProductManager();
+export default new ProductManager();

@@ -1,5 +1,7 @@
+import jwt from 'jsonwebtoken';
 import User from "../daos/user.dao.js";
 import { createHash } from "../utils/utils.js";
+import { sendPasswordResetEmail } from './email.service.js';
 
 class UserService {
   async createUser(userData) {
@@ -16,5 +18,9 @@ class UserService {
     return await User.findById(id).populate("cart");
   }
 }
+
+export const createPasswordResetToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+};
 
 export default UserService;
