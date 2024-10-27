@@ -25,8 +25,13 @@
                         <p class="card-text"><strong>Stock: </strong>{{this.stock}}</p>
                         <p class="card-text"><strong>Categoría: </strong>{{this.category}}</p>
                         <a href="/products/{{this._id}}" class="btn btn-primary">Ver detalles</a>
+                        {{#if isAuthenticated}}
                         <button class="btn btn-success add-to-cart" data-id="{{this._id}}"
                             data-cart-id="{{cartId}}">Agregar al carrito</button>
+                        {{else}}
+                        <a href="/login?redirect=/products/{{this._id}}" class="btn btn-primary">Iniciar sesión para
+                            agregar al carrito</a>
+                        {{/if}}
                     </div>
                 </div>
             </div>

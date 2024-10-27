@@ -4,10 +4,18 @@ import { registerUser } from '../controllers/user.controller.js';
 import { getUserByEmail } from '../daos/user.dao.js';
 import { createHash, isValidPassword } from '../utils/utils.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
-import CartManager from '../manager/cartManager.js';  
+import CartManager from '../manager/cartManager.js';
 import UserDTO from '../dto/user.dto.js';
 
 const router = express.Router();
+
+router.get('/register', (req, res) => {
+  res.render('register');
+});
+
+router.get('/login', (req, res) => {
+  res.render('login');
+});
 
 router.post('/register', registerUser);
 
@@ -30,6 +38,11 @@ router.post('/login', async (req, res, next) => {
       }
     }
 
+    req.session.user = {
+      ...user.toObject(),
+      cartId: user.cart.toString()
+    };
+    
     const token = generateToken(user);
     res.cookie('jwt', token, { httpOnly: true }).send('Inicio de sesión exitoso');
   } catch (error) {
@@ -40,6 +53,13 @@ router.post('/login', async (req, res, next) => {
 router.get('/current', authMiddleware, (req, res) => {
   const userDTO = new UserDTO(req.user);
   res.send(userDTO);
+});
+
+router.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('jwt');
+    res.redirect('/login');
+  });
 });
 
 export default router;

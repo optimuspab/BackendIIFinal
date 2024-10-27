@@ -24,8 +24,13 @@
                 <p><strong>Stock: </strong>{{product.stock}}</p>
                 <p><strong>Categoría: </strong>{{product.category}}</p>
                 <div class="d-flex">
+                    {{#if isAuthenticated}}
                     <button class="btn btn-success me-2 add-to-cart" data-id="{{product._id}}"
                         data-cart-id="{{cartId}}">Agregar al carrito</button>
+                    {{else}}
+                    <a href="/login?redirect=/products/{{product._id}}" class="btn btn-primary">Iniciar sesión para
+                        agregar al carrito</a>
+                    {{/if}}
                     <a href="/products" class="btn btn-secondary">Volver al inicio</a>
                 </div>
             </div>
@@ -43,11 +48,11 @@
             fetch(`/api/carts/${cartId}/product/${productId}`, {
                 method: 'POST'
             })
-            .then(response => response.text())
-            .then(data => {
-                alert(`Producto ${productId} agregado al carrito`);
-            })
-            .catch(error => console.error('Error:', error));
+                .then(response => response.text())
+                .then(data => {
+                    alert(`Producto ${productId} agregado al carrito`);
+                })
+                .catch(error => console.error('Error:', error));
         });
     </script>
 </body>

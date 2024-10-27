@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import User from '../daos/user.dao.js';
-import CartManager from '../manager/cartManager.js'; 
+import CartManager from '../manager/cartManager.js';
+import { authMiddleware } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
@@ -31,6 +32,83 @@ router.post('/register', async (req, res, next) => {
 
     const savedUser = await newUser.save();
     res.status(201).json({ message: 'Usuario registrado exitosamente.', user: savedUser });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/:id', authMiddleware, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).populate('cart');
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/:id', authMiddleware, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { first_name, last_name, email, age } = req.body;
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { first_name, last_name, email, age },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+
+    res.json({ message: 'Usuario actualizado exitosamente.', user: updatedUser });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/:id', authMiddleware, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (req.user.role !== 'admin' && req.user._id !== id) {
+      return res.status(403).json({ message: 'No tienes permiso para eliminar este usuario.' });
+    }
+
+    const deletedUser = await User.findByIdAndDelete(id);
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+
+    res.json({ message: 'Usuario eliminado exitosamente.' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/:id/password', authMiddleware, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { oldPassword, newPassword } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+
+    const isMatch = bcrypt.compareSync(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Contraseña antigua incorrecta.' });
+    }
+
+    const hashedNewPassword = bcrypt.hashSync(newPassword, 10);
+    user.password = hashedNewPassword;
+    await user.save();
+
+    res.json({ message: 'Contraseña actualizada exitosamente.' });
   } catch (error) {
     next(error);
   }

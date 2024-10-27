@@ -9,22 +9,28 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { errorHandler } from './middleware/errorhandler.js';
 import MainRouter from './routes/index.js';
+import viewRouter from './routes/views.router.js';
 import { engine } from 'express-handlebars';
 
 dotenv.config();
 const app = express();
 const mainRouter = new MainRouter();
 
-// Configuración de directorios
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Configuración del motor de plantillas Handlebars
-app.engine('handlebars', engine());
+app.engine(
+  'handlebars',
+  engine({
+    defaultLayout: 'main',
+    extname: '.handlebars',
+    layoutsDir: path.join(__dirname, 'views', 'layouts'),
+    partialsDir: path.join(__dirname, 'views', 'partials'),
+  })
+);
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, 'views'));
 
-// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -38,13 +44,11 @@ app.use(
   })
 );
 
-// Configuración de Passport
 import configurePassport from './config/passport.js';
 configurePassport(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Conexión a MongoDB
 const MONGO_CERT_PATH = path.resolve(__dirname, process.env.MONGO_CERT_PATH);
 
 mongoose
@@ -58,10 +62,10 @@ mongoose
     console.error('Error connecting to MongoDB:', error);
   });
 
-// Rutas
+app.use('/', viewRouter);
+
 app.use('/api', mainRouter.getRouter());
 
-// Manejo de errores
 app.use(errorHandler);
 
 export default app;

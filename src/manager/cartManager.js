@@ -1,14 +1,11 @@
-import Cart from '../daos/cart.dao.js';
+import cartDAO from '../daos/cart.dao.js';
 
 class CartManager {
     async createCart() {
         try {
-            const newCart = new Cart();
+            const newCart = await cartDAO.createCart({ products: [] });
             console.log("Nuevo carrito creado:", newCart);
-
-            const savedCart = await newCart.save();
-            console.log("Carrito guardado en la base de datos:", savedCart);
-            return { success: true, cart: savedCart };
+            return { success: true, cart: newCart };
         } catch (error) {
             console.error('Error al crear el carrito:', error);
             return { success: false, message: 'Error al crear el carrito' };
@@ -17,7 +14,7 @@ class CartManager {
 
     async getCartById(id) {
         try {
-            const cart = await Cart.findById(id).populate('products.product').exec();
+            const cart = await cartDAO.getCartById(id);
             if (!cart) {
                 return { success: false, message: 'Carrito no encontrado' };
             }
@@ -58,16 +55,16 @@ class CartManager {
             if (!cartResult.success) {
                 return cartResult;
             }
-    
+
             const cart = cartResult.cart;
             const initialProductCount = cart.products.length;
-    
+
             cart.products = cart.products.filter(p => p.product._id.toString() !== productId);
-    
+
             if (cart.products.length === initialProductCount) {
                 return { success: false, message: `Producto no encontrado en el carrito: ${productId}` };
             }
-    
+
             await cart.save();
             return { success: true, message: 'Producto eliminado del carrito' };
         } catch (error) {
@@ -102,18 +99,11 @@ class CartManager {
 
     async updateCart(cartId, products) {
         try {
-            const cartResult = await this.getCartById(cartId);
-            if (!cartResult.success) {
-                return cartResult;
+            const cart = await cartDAO.updateCart(cartId, { products });
+            if (!cart) {
+                return { success: false, message: 'Carrito no encontrado' };
             }
 
-            const cart = cartResult.cart;
-            cart.products = products.map(p => ({
-                product: p.product.toString(),
-                quantity: p.quantity
-            }));
-
-            await cart.save();
             return { success: true, message: 'Carrito actualizado' };
         } catch (error) {
             console.error('Error al actualizar el carrito:', error);
@@ -123,22 +113,17 @@ class CartManager {
 
     async clearCart(cartId) {
         try {
-            const cartResult = await this.getCartById(cartId);
-            if (!cartResult.success) {
-                return cartResult;
+            const cart = await cartDAO.updateCart(cartId, { products: [] });
+            if (!cart) {
+                return { success: false, message: 'Carrito no encontrado' };
             }
 
-            const cart = cartResult.cart;
-            cart.products = [];
-
-            await cart.save();
             return { success: true, message: 'Carrito vaciado' };
         } catch (error) {
             console.error('Error al vaciar el carrito:', error);
             return { success: false, message: 'Error al vaciar el carrito' };
         }
     }
-
 }
 
 export default new CartManager();

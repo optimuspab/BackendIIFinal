@@ -23,6 +23,13 @@
                         <p class="card-text">{{this.product.description}}</p>
                         <p class="card-text"><strong>Precio: </strong>${{this.product.price}}</p>
                         <p class="card-text"><strong>Cantidad: </strong>{{this.quantity}}</p>
+                        {{#if isAuthenticated}}
+                        <button class="btn btn-success add-to-cart" data-id="{{this.product._id}}"
+                            data-cart-id="{{cartId}}">Agregar más</button>
+                        {{else}}
+                        <a href="/login?redirect=/carts/{{cartId}}" class="btn btn-primary">Iniciar sesión para
+                            modificar el carrito</a>
+                        {{/if}}
                     </div>
                 </div>
             </div>
