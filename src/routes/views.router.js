@@ -13,13 +13,26 @@ router.get('/login', (req, res) => {
     res.render('login');
 });
 
+router.get('/profile', authMiddleware, (req, res) => {
+    const user = req.session.user;
+
+    const userProfile = {
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        cartId: user.cartId
+    };
+
+    res.render('profile', { user: userProfile, isAuthenticated: true });
+});
+
 router.get('/products', async (req, res) => {
     let { page = 1, limit = 10, sort, category, stock } = req.query;
 
     if (!req.session.cartId) {
         const result = await cartManager.createCart();
         if (result.success) {
-            req.session.cartId = result.cart._id.toString();
+            req.session.cartId = result.cart.id || result.cart._id;
         } else {
             return res.status(500).send('Error al crear el carrito');
         }
@@ -53,6 +66,7 @@ router.get('/products', async (req, res) => {
         res.status(500).send('Error al cargar productos');
     }
 });
+
 
 router.get('/products/:pid', async (req, res) => {
     try {

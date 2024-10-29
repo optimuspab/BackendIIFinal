@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from "../daos/user.dao.js";
+import userDao from '../daos/user.dao.js';
 import { createHash } from "../utils/utils.js";
 import { sendPasswordResetEmail } from './email.service.js';
 
@@ -7,7 +7,7 @@ class UserService {
   async createUser(userData) {
     try {
       userData.password = createHash(userData.password);
-      const newUser = await User.create(userData);
+      const newUser = await userDao.createUser(userData);
       return newUser;
     } catch (error) {
       throw new Error("Error al crear usuario: " + error.message);
@@ -15,7 +15,7 @@ class UserService {
   }
 
   async getById(id) {
-    return await User.findById(id).populate("cart");
+    return await userDao.findById(id);
   }
 }
 

@@ -6,6 +6,7 @@ import { createHash, isValidPassword } from '../utils/utils.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import CartManager from '../manager/cartManager.js';
 import UserDTO from '../dto/user.dto.js';
+import { userValidator } from '../middleware/userValidator.js';
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ router.get('/login', (req, res) => {
   res.render('login');
 });
 
-router.post('/register', registerUser);
+router.post('/register', userValidator, registerUser);
 
 router.post('/login', async (req, res, next) => {
   try {
@@ -39,27 +40,54 @@ router.post('/login', async (req, res, next) => {
     }
 
     req.session.user = {
-      ...user.toObject(),
+      _id: user._id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
       cartId: user.cart.toString()
     };
     
     const token = generateToken(user);
-    res.cookie('jwt', token, { httpOnly: true }).send('Inicio de sesión exitoso');
+    res.cookie('jwt', token, { httpOnly: true });
+    return res.redirect('/products');   
   } catch (error) {
     next(error);
   }
 });
+
 
 router.get('/current', authMiddleware, (req, res) => {
   const userDTO = new UserDTO(req.user);
   res.send(userDTO);
 });
 
+router.get('/profile', authMiddleware, async (req, res, next) => {
+  try {
+
+      const userId = req.session.user._id;
+      const user = await getUserById(userId);
+
+      const userProfile = {
+          first_name: user.first_name,
+          last_name: user.last_name,
+          email: user.email,
+          cartId: user.cart.toString()
+      };
+
+      res.render('profile', { user: userProfile });
+  } catch (error) {
+      next(error);
+  }
+});
+
 router.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.clearCookie('jwt');
-    res.redirect('/login');
+  req.session.destroy((err) => {
+      if (err) {
+          return res.status(500).send('Error al cerrar sesión');
+      }
+      res.redirect('/login');
   });
 });
+
 
 export default router;

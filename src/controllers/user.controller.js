@@ -34,17 +34,18 @@ export const registerUser = async (req, res, next) => {
       return createResponse(req, res, 500, null, 'Error al crear el carrito');
     }
 
-    newUser.cart = cartResult.cart._id;
+    newUser.cart = cartResult.cart; // Ajustar para PostgreSQL
 
     const savedUser = await createUser(newUser);
 
     req.session.user = {
-      ...savedUser.toObject(),
-      cartId: savedUser.cart.toString()
+      ...savedUser,
+      cartId: savedUser.cart // Asegurarse de que sea compatible con PostgreSQL
     };
 
-    return createResponse(req, res, 201, { message: 'Usuario registrado exitosamente' });
+    return res.redirect('/products');
   } catch (error) {
-    return next(error);
+    next(error);
   }
 };
+
