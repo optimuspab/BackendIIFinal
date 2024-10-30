@@ -10,9 +10,11 @@ export const registerUser = async (req, res, next) => {
     const existingUser = await userService.getUserByEmail(email);
 
     if (existingUser) {
-      return res.render('register', { 
-        error: 'El correo electrónico ya está registrado. Inténtalo con otro.' 
-      });
+      if (req.headers['content-type'] === 'application/json') {
+        return res.status(400).json({ error: 'El correo electrónico ya está registrado. Inténtalo con otro.' });
+      } else {
+        return res.render('register', { error: 'El correo electrónico ya está registrado. Inténtalo con otro.' });
+      }
     }
 
     const hashedPassword = createHash(password);
@@ -32,24 +34,13 @@ export const registerUser = async (req, res, next) => {
       cartId: user.cart ? user.cart.toString() : null,
     };
 
-    res.redirect('/products');
-  } catch (error) {
-    console.error('Error al registrar usuario:', error);
-
-    const errorMessages = [];
-    
-    if (error.errors) {
-      for (let field in error.errors) {
-        errorMessages.push({
-          field,
-          message: error.errors[field].message,
-        });
-      }
+    if (req.headers['content-type'] === 'application/json') {
+      return res.json({ message: 'Registro exitoso', user: req.session.user });
     } else {
-      errorMessages.push({ field: 'general', message: 'Ocurrió un problema al registrar el usuario. Inténtalo más tarde.' });
+      return res.redirect('/products');
     }
-
-    return res.render('register', { errors: errorMessages });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -59,11 +50,20 @@ export const loginUser = async (req, res, next) => {
     const user = await userService.getUserByEmail(email);
 
     if (!user || !user.password) {
-      return res.render('login', { error: 'Credenciales inválidas. Inténtalo de nuevo.' });
+      if (req.headers['content-type'] === 'application/json') {
+        return res.status(401).json({ error: 'Credenciales inválidas' });
+      } else {
+        return res.render('login', { error: 'Credenciales inválidas. Inténtalo de nuevo.' });
+      }
     }
 
-    if (!isValidPassword(password, user.password)) {
-      return res.render('login', { error: 'Credenciales inválidas. Inténtalo de nuevo.' });
+    const validPassword = isValidPassword(password, user.password);
+    if (!validPassword) {
+      if (req.headers['content-type'] === 'application/json') {
+        return res.status(401).json({ error: 'Credenciales inválidas' });
+      } else {
+        return res.render('login', { error: 'Credenciales inválidas. Inténtalo de nuevo.' });
+      }
     }
 
     req.session.user = {
@@ -76,10 +76,14 @@ export const loginUser = async (req, res, next) => {
 
     const token = generateToken(user);
     res.cookie('jwt', token, { httpOnly: true });
-    res.redirect('/products');
+
+    if (req.headers['content-type'] === 'application/json') {
+      return res.json({ message: 'Inicio de sesión exitoso', user: req.session.user });
+    } else {
+      return res.redirect('/products');
+    }
   } catch (error) {
-    console.error('Error en login:', error.message);
-    return res.render('login', { error: 'Ocurrió un problema al iniciar sesión. Inténtalo de nuevo.' });
+    next(error);
   }
 };
 
@@ -88,18 +92,31 @@ export const requestPasswordReset = async (req, res) => {
   const user = await userService.getUserByEmail(email);
 
   if (!user) {
-    return res.render('request-password-reset', { error: 'Usuario no encontrado' });
+    if (req.headers['content-type'] === 'application/json') {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    } else {
+      return res.render('request-password-reset', { error: 'Usuario no encontrado' });
+    }
   }
 
   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
   const resetLink = `${process.env.BASE_URL}/reset-password/${token}`;
-console.log(resetLink)
+  console.log(resetLink);
+
   try {
     await sendPasswordResetEmail(email, resetLink);
-    res.render('request-password-reset', { success: 'Se ha enviado un enlace de restablecimiento a tu correo electrónico.' });
+    if (req.headers['content-type'] === 'application/json') {
+      return res.json({ message: 'Se ha enviado un enlace de restablecimiento a tu correo electrónico.' });
+    } else {
+      res.render('request-password-reset', { success: 'Se ha enviado un enlace de restablecimiento a tu correo electrónico.' });
+    }
   } catch (error) {
-    console.error("Error sending password reset email:", error);
-    res.render('request-password-reset', { error: 'No se pudo enviar el correo de restablecimiento.' });
+    console.error("Error al enviar el correo de restablecimiento:", error);
+    if (req.headers['content-type'] === 'application/json') {
+      return res.status(500).json({ error: 'No se pudo enviar el correo de restablecimiento.' });
+    } else {
+      res.render('request-password-reset', { error: 'No se pudo enviar el correo de restablecimiento.' });
+    }
   }
 };
 
@@ -123,14 +140,26 @@ export const resetPassword = async (req, res) => {
     const user = await userService.getUserById(decoded.userId);
 
     if (isValidPassword(newPassword, user.password)) {
-      return res.render('reset-password', { error: 'La nueva contraseña no puede ser igual a la anterior.', token });
+      if (req.headers['content-type'] === 'application/json') {
+        return res.status(400).json({ error: 'La nueva contraseña no puede ser igual a la anterior.' });
+      } else {
+        return res.render('reset-password', { error: 'La nueva contraseña no puede ser igual a la anterior.', token });
+      }
     }
 
     user.password = createHash(newPassword);
     await user.save();
-    res.render('reset-success');
+
+    if (req.headers['content-type'] === 'application/json') {
+      return res.json({ message: 'Contraseña restablecida con éxito' });
+    } else {
+      res.render('reset-success');
+    }
   } catch (error) {
-    res.render('link-expired');
+    if (req.headers['content-type'] === 'application/json') {
+      return res.status(400).json({ error: 'El enlace de restablecimiento ha expirado o es inválido.' });
+    } else {
+      res.render('link-expired');
+    }
   }
 };
-

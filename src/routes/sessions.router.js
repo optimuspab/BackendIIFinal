@@ -1,6 +1,7 @@
 import express from 'express';
 import { registerUser, loginUser } from '../controllers/user.controller.js';
 import { userValidator } from '../middleware/userValidator.js';
+import UserDTO from'../dto/user.dto.js';
 
 const router = express.Router();
 
@@ -17,6 +18,14 @@ router.get('/logout', (req, res) => {
     }
     res.redirect('/login');
   });
+});
+
+router.get('/current', (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: 'Usuario no autenticado' });
+  }
+  const userDTO = new UserDTO(req.session.user);
+  res.json(userDTO);
 });
 
 export default router;
