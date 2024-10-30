@@ -26,6 +26,8 @@
                         {{#if isAuthenticated}}
                         <button class="btn btn-success add-to-cart" data-id="{{this.product._id}}"
                             data-cart-id="{{cartId}}">Agregar más</button>
+                        <button class="btn btn-danger remove-from-cart" data-id="{{this.product._id}}"
+                            data-cart-id="{{cartId}}">Eliminar</button>
                         {{else}}
                         <a href="/login?redirect=/carts/{{cartId}}" class="btn btn-primary">Iniciar sesión para
                             modificar el carrito</a>
@@ -37,6 +39,51 @@
         </div>
         <a href="/products" class="btn btn-secondary mt-3">Volver a Inicio</a>
     </div>
+
+    <script>
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', function () {
+                const productId = this.getAttribute('data-id');
+                const cartId = this.getAttribute('data-cart-id');
+
+                fetch(`/api/carts/${cartId}/product/${productId}`, {
+                    method: 'POST',
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Producto agregado al carrito');
+                            location.reload();
+                        } else {
+                            alert('Error al agregar el producto al carrito');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+        });
+
+        document.querySelectorAll('.remove-from-cart').forEach(button => {
+            button.addEventListener('click', function () {
+                const productId = this.getAttribute('data-id');
+                const cartId = this.getAttribute('data-cart-id');
+
+                fetch(`/api/carts/${cartId}/product/${productId}`, {
+                    method: 'DELETE',
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Producto eliminado del carrito');
+                            location.reload();
+                        } else {
+                            alert('Error al eliminar el producto del carrito');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+        });
+
+    </script>
+
+
 </body>
 
 </html>

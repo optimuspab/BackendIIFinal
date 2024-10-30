@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <title>Lista de Productos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-
 <body class="bg-light">
     <div class="container">
         <h1 class="my-4 text-center">Lista de Productos</h1>
@@ -25,12 +23,15 @@
                         <p class="card-text"><strong>Stock: </strong>{{this.stock}}</p>
                         <p class="card-text"><strong>Categoría: </strong>{{this.category}}</p>
                         <a href="/products/{{this._id}}" class="btn btn-primary">Ver detalles</a>
+
                         {{#if isAuthenticated}}
-                        <button class="btn btn-success add-to-cart" data-id="{{this._id}}"
-                            data-cart-id="{{cartId}}">Agregar al carrito</button>
+                        <button class="btn btn-success add-to-cart" data-id="{{this._id}}" data-cart-id="{{cartId}}">Agregar al carrito</button>
                         {{else}}
-                        <a href="/login?redirect=/products/{{this._id}}" class="btn btn-primary">Iniciar sesión para
-                            agregar al carrito</a>
+                        <a href="/login?redirect=/products/{{this._id}}" class="btn btn-primary">Iniciar sesión para agregar al carrito</a>
+                        {{/if}}
+
+                        {{#if isAdmin}}
+                        <button class="btn btn-danger delete-product" data-id="{{this._id}}">Eliminar Producto</button>
                         {{/if}}
                     </div>
                 </div>
@@ -68,18 +69,22 @@
                 const productId = this.getAttribute('data-id');
                 const cartId = sessionStorage.getItem('cartId');
 
-                fetch(`/api/carts/${cartId}/product/${productId}`, {
-                    method: 'POST'
-                })
-                    .then(response => response.text())
-                    .then(data => {
-                        alert(`Producto ${productId} agregado al carrito`);
-                    })
+                fetch(`/api/carts/${cartId}/product/${productId}`, { method: 'POST' })
+                    .then(response => response.ok ? alert(`Producto ${productId} agregado al carrito`) : alert("Error al agregar al carrito"))
+                    .catch(error => console.error('Error:', error));
+            });
+        });
+
+        document.querySelectorAll('.delete-product').forEach(button => {
+            button.addEventListener('click', function () {
+                const productId = this.getAttribute('data-id');
+
+                fetch(`/api/products/${productId}`, { method: 'DELETE' })
+                    .then(response => response.ok ? alert("Producto eliminado") : alert("Error al eliminar producto"))
+                    .then(() => window.location.reload())
                     .catch(error => console.error('Error:', error));
             });
         });
     </script>
-
 </body>
-
 </html>

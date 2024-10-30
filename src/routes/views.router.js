@@ -69,12 +69,14 @@ router.get('/products', async (req, res) => {
             nextLink: products.hasNextPage ? `/products?page=${products.nextPage}&limit=${limit}&sort=${sort}&category=${category}&stock=${stock}` : null,
             page: products.page,
             cartId: req.session.cartId,
-            isAuthenticated: req.session.user != null
+            isAuthenticated: req.session.user != null,
+            isAdmin: req.session.user && req.session.user.role === 'admin'
         });
     } catch (error) {
         res.status(500).send('Error al cargar productos');
     }
 });
+
 
 router.get('/products/:pid', async (req, res) => {
     try {
@@ -110,6 +112,7 @@ router.get('/carts/:cid', authMiddleware, async (req, res) => {
         if (result.success) {
             res.render('cart', { 
                 products: result.cart.products,
+                cartId: userCartId,
                 isAuthenticated: req.session.user != null 
             });
         } else {

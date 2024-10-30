@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import express from 'express';
 import bcrypt from 'bcrypt';
-import User from '../daos/user.dao.js';
+import { authMiddleware, adminOnlyMiddleware } from '../middleware/auth.middleware.js';
 import CartManager from '../manager/cartManager.js';
-import { authMiddleware } from '../middleware/auth.middleware.js';
+import User from '../daos/user.dao.js';
 
-const router = Router();
+const router = express.Router();
 
 router.post('/register', async (req, res, next) => {
   try {
@@ -27,7 +27,7 @@ router.post('/register', async (req, res, next) => {
       email,
       age,
       password: hashedPassword,
-      cart: cartResult.cart._id 
+      cart: cartResult.cart._id,
     });
 
     const savedUser = await newUser.save();
@@ -50,7 +50,7 @@ router.get('/:id', authMiddleware, async (req, res, next) => {
   }
 });
 
-router.put('/:id', authMiddleware, async (req, res, next) => {
+router.put('/:id', authMiddleware, adminOnlyMiddleware, async (req, res, next) => {
   try {
     const { id } = req.params;
     const { first_name, last_name, email, age } = req.body;
@@ -70,19 +70,13 @@ router.put('/:id', authMiddleware, async (req, res, next) => {
   }
 });
 
-router.delete('/:id', authMiddleware, async (req, res, next) => {
+router.delete('/:id', authMiddleware, adminOnlyMiddleware, async (req, res, next) => {
   try {
     const { id } = req.params;
-
-    if (req.user.role !== 'admin' && req.user._id !== id) {
-      return res.status(403).json({ message: 'No tienes permiso para eliminar este usuario.' });
-    }
-
     const deletedUser = await User.findByIdAndDelete(id);
     if (!deletedUser) {
       return res.status(404).json({ message: 'Usuario no encontrado.' });
     }
-
     res.json({ message: 'Usuario eliminado exitosamente.' });
   } catch (error) {
     next(error);
@@ -93,6 +87,10 @@ router.put('/:id/password', authMiddleware, async (req, res, next) => {
   try {
     const { id } = req.params;
     const { oldPassword, newPassword } = req.body;
+
+    if (req.user._id !== id) {
+      return res.status(403).json({ message: 'Acceso denegado.' });
+    }
 
     const user = await User.findById(id);
     if (!user) {

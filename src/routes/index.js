@@ -4,7 +4,7 @@ import cartRouter from './carts.router.js';
 import sessionRouter from './sessions.router.js';
 import authRouter from './auth.router.js';
 import productRouter from './products.router.js';
-
+import loginUser from './sessions.router.js';
 export default class MainRouter {
     constructor() {
         this.router = Router();
@@ -17,6 +17,7 @@ export default class MainRouter {
         this.router.use('/password-reset', authRouter);
         this.router.use('/products', productRouter);
         this.router.use('/', sessionRouter);
+        this.router.use('/login', loginUser);
     }
 
     getRouter() {

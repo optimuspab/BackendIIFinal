@@ -29,7 +29,7 @@ export const registerUser = async (req, res, next) => {
       first_name: user.first_name,
       last_name: user.last_name,
       email: user.email,
-      cartId: user.cart.toString(),
+      cartId: user.cart ? user.cart.toString() : null,
     };
 
     res.redirect('/products');
@@ -71,7 +71,7 @@ export const loginUser = async (req, res, next) => {
       first_name: user.first_name,
       last_name: user.last_name,
       email: user.email,
-      cartId: user.cart.toString(),
+      cartId: user.cart ? user.cart.toString() : null,
     };
 
     const token = generateToken(user);
