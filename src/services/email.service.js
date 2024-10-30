@@ -23,3 +23,4 @@ export const sendPasswordResetEmail = async (userEmail, resetLink) => {
     console.error("Error sending email", error);
   }
 };
+

@@ -3,8 +3,8 @@ import bcrypt from "bcrypt";
 export const createHash = (password) =>
   bcrypt.hashSync(password, bcrypt.genSaltSync(10));
 
-export const isValidPassword = (password, user) =>
-  bcrypt.compareSync(password, user.password);
+export const isValidPassword = (password, hashedPassword) =>
+  bcrypt.compareSync(password, hashedPassword);
 
 export const createResponse = (req, res, statusCode, data, error = null) => {
   return res.status(statusCode).json({
@@ -14,3 +14,4 @@ export const createResponse = (req, res, statusCode, data, error = null) => {
     path: req.url,
   });
 };
+

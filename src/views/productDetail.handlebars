@@ -38,21 +38,30 @@
     </div>
 
     <script>
-        const cartId = '{{cartId}}';
-        sessionStorage.setItem('cartId', cartId);
+        document.addEventListener('DOMContentLoaded', function () {
+            const cartId = '{{cartId}}';
+            sessionStorage.setItem('cartId', cartId);
 
-        document.querySelector('.add-to-cart').addEventListener('click', function () {
-            const productId = this.getAttribute('data-id');
-            const cartId = sessionStorage.getItem('cartId');
+            const addToCartButton = document.querySelector('.add-to-cart');
+            
+            if (addToCartButton) {
+                addToCartButton.addEventListener('click', function () {
+                    const productId = this.getAttribute('data-id');
+                    const cartId = sessionStorage.getItem('cartId');
 
-            fetch(`/api/carts/${cartId}/product/${productId}`, {
-                method: 'POST'
-            })
-                .then(response => response.text())
-                .then(data => {
-                    alert(`Producto ${productId} agregado al carrito`);
-                })
-                .catch(error => console.error('Error:', error));
+                    fetch(`/api/carts/${cartId}/product/${productId}`, {
+                        method: 'POST'
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error("Error al agregar al carrito");
+                        return response.text();
+                    })
+                    .then(data => {
+                        alert(`Producto ${productId} agregado al carrito`);
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            }
         });
     </script>
 </body>

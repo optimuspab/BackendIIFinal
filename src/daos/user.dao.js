@@ -5,13 +5,10 @@ const dbType = process.env.DB_TYPE || 'mongo';
 
 export const createUser = async (userData) => {
   if (dbType === 'mongo') {
-    const user = new User(userData);
-    return await user.save();
+    return await new User(userData).save();
   } else if (dbType === 'postgresql') {
     try {
-      const cartResult = await postgresqlDb.query(
-        'INSERT INTO carts DEFAULT VALUES RETURNING id'
-      );
+      const cartResult = await postgresqlDb.query('INSERT INTO carts DEFAULT VALUES RETURNING id');
       const cartId = cartResult.rows[0].id;
 
       const { first_name, last_name, email, age, password, role } = userData;
@@ -28,23 +25,16 @@ export const createUser = async (userData) => {
 
 export const getUserByEmail = async (email) => {
   if (dbType === 'mongo') {
-  if (dbType === 'mongo') {
     return await User.findOne({ email });
-  }
   } else if (dbType === 'postgresql') {
-    const result = await postgresqlDb.query(
-      'SELECT * FROM users WHERE email = $1',
-      [email]
-    );
+    const result = await postgresqlDb.query('SELECT * FROM users WHERE email = $1', [email]);
     return result.rows[0];
   }
 };
 
-export const findById = async (id) => {
-  if (dbType === 'mongo') {
+export const getUserById = async (id) => {
   if (dbType === 'mongo') {
     return await User.findById(id).populate("cart");
-  }
   } else if (dbType === 'postgresql') {
     const result = await postgresqlDb.query(
       `SELECT users.*, carts.id AS cart_id
@@ -59,15 +49,10 @@ export const findById = async (id) => {
 
 export const paginateUsers = async (query, options) => {
   if (dbType === 'mongo') {
-  if (dbType === 'mongo') {
     return await User.paginate(query, options);
-  }
   } else if (dbType === 'postgresql') {
     const { limit, offset } = options;
-    const result = await postgresqlDb.query(
-      'SELECT * FROM users LIMIT $1 OFFSET $2',
-      [limit, offset]
-    );
+    const result = await postgresqlDb.query('SELECT * FROM users LIMIT $1 OFFSET $2', [limit, offset]);
     const total = await postgresqlDb.query('SELECT COUNT(*) FROM users');
     return {
       docs: result.rows,
@@ -81,6 +66,6 @@ export const paginateUsers = async (query, options) => {
 export default {
   createUser,
   getUserByEmail,
-  findById,
+  getUserById,
   paginateUsers,
 };

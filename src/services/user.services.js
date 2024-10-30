@@ -1,26 +1,19 @@
-import jwt from 'jsonwebtoken';
 import userDao from '../daos/user.dao.js';
 import { createHash } from "../utils/utils.js";
-import { sendPasswordResetEmail } from './email.service.js';
 
 class UserService {
   async createUser(userData) {
-    try {
-      userData.password = createHash(userData.password);
-      const newUser = await userDao.createUser(userData);
-      return newUser;
-    } catch (error) {
-      throw new Error("Error al crear usuario: " + error.message);
-    }
+    userData.password = createHash(userData.password);
+    return await userDao.createUser(userData);
   }
 
-  async getById(id) {
-    return await userDao.findById(id);
+  async getUserById(id) {
+    return await userDao.getUserById(id);
+  }
+
+  async getUserByEmail(email) {
+    return await userDao.getUserByEmail(email);
   }
 }
 
-export const createPasswordResetToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
-};
-
-export default UserService;
+export default new UserService();

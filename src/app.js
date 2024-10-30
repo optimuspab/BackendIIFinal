@@ -26,6 +26,10 @@ const hbs = exphbs.create({
   helpers: {
     eq: (a, b) => a === b,
   },
+  runtimeOptions: {
+    allowProtoPropertiesByDefault: true,
+    allowProtoMethodsByDefault: true,
+  },
 });
 
 app.engine('handlebars', hbs.engine);
@@ -36,6 +40,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan('dev'));
+app.use('/files', express.static(path.join(__dirname, 'public', 'files')));
 
 app.use(
   session({
@@ -51,7 +56,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 const dbType = process.env.DB_TYPE || 'mongo';
-console.log('dbType en CartDAO:', dbType); 
+console.log('dbType en CartDAO:', dbType);
 
 if (dbType === 'mongo') {
   const MONGO_CERT_PATH = path.resolve(__dirname, process.env.MONGO_CERT_PATH);

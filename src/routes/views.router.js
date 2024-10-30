@@ -13,6 +13,15 @@ router.get('/login', (req, res) => {
     res.render('login');
 });
 
+router.get('/request-password-reset', (req, res) => {
+    res.render('request-password-reset');
+});
+
+router.get('/reset-password/:token', (req, res) => {
+    const { token } = req.params;
+    res.render('reset-password', { token });
+});
+
 router.get('/profile', authMiddleware, (req, res) => {
     const user = req.session.user;
 
@@ -66,7 +75,6 @@ router.get('/products', async (req, res) => {
         res.status(500).send('Error al cargar productos');
     }
 });
-
 
 router.get('/products/:pid', async (req, res) => {
     try {
