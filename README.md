@@ -1,119 +1,22 @@
-# Comisión 70100 - Programación Backend II: Primer Entrega
+# Comisión 70100 - Programación Backend II: Entrega Final
 
-## Descripción del Proyecto
+Objetivos generales
 
-Se implementará en el proyecto ecommerce facilitado al inicio del curso un CRUD de usuarios, junto con un sistema de Autorización y Autenticación.
+Profesionalizar el servidor desarrollado en la primera preentrega
+Objetivos específicos
 
-### Características del Proyecto
+Aplicar una arquitectura profesional para nuestro servidor
+Aplicar prácticas como patrones de diseño, mailing, variables de entorno. etc.
+Se debe entregar
 
-- Crear un modelo `User` el cual contará con los campos:
-    - `first_name`: String
-    - `last_name`: String
-    - `email`: String (único)
-    - `age`: Number
-    - `password`: String (Hash)
-    - `cart`: Id con referencia a `Carts`
-    - `role`: String (default: 'user')
-  
-- Encriptar la contraseña del usuario mediante el paquete bcrypt (Utilizar el método `hashSync`).
+Modificar nuestra capa de persistencia para aplicar los conceptos de DAO y DTO.
+Implementar el patrón Repository para trabajar con el DAO en la lógica de negocio.
+Modificar la ruta  /current Para evitar enviar información sensible, enviar un DTO del usuario sólo con la información necesaria.
+Realizar un middleware que pueda trabajar en conjunto con la estrategia “current” para hacer un sistema de autorización y delimitar el acceso a dichos endpoints:
 
-- Desarrollar las estrategias de Passport para que funcionen con este modelo de usuarios.
-
-- Implementar un sistema de login del usuario que trabaje con jwt.
-
-- Desarrollar una estrategia `current` para extraer la cookie que contiene el token y con dicho token obtener el usuario asociado. En caso de tener el token, devolver al usuario asociado al token, caso contrario devolver un error de passport, utilizar un extractor de cookie.
-
-- Agregar al router `/api/sessions/` la ruta `/current`, la cual validará al usuario logueado y devolverá en una respuesta sus datos (Asociados al JWT).
-
-### Rutas del proyecto
-
-#### Base URL: `http://localhost:8080/api`
-
-- **POST `/api/sessions/register`:** Esta ruta permite registrar un nuevo usuario.
-  - Durante el registro:
-    - Se verifica si el email ya está registrado.
-    - Si el usuario no existe, se crea un nuevo carrito y se asocia al usuario.
-    - La contraseña se encripta con bcrypt antes de almacenar el usuario en la base de datos.
-  - **Ejemplo de uso (payload)**:
-    ```json
-    {
-      "first_name": "John",
-      "last_name": "Doe",
-      "email": "john.doe@example.com",
-      "age": 30,
-      "password": "password123"
-    }
-    ```
-  - **Ejemplo de respuesta**:
-    ```json
-    {
-      "message": "Usuario registrado exitosamente.",
-      "user": { /* detalles del usuario registrado */ }
-    }
-    ```
-
-- **POST `/api/sessions/login`:** Esta ruta permite a un usuario iniciar sesión utilizando su email y contraseña. Si las credenciales son correctas, se genera un token JWT que se guarda en una cookie.registrar un nuevo usuario.
-  - **Ejemplo de uso (payload)**:
-    ```json
-    {
-      "email": "john.doe@example.com",
-      "password": "password123"
-    }
-    ```
-  - **Ejemplo de respuesta**:
-    ```json
-    {
-      "message": "Inicio de sesión exitoso"
-    }
-    ```
-
-- **GET `/api/sessions/current`:** Esta ruta valida el token JWT del usuario actual y devuelve la información del usuario (sin la contraseña).
-  - **Ejemplo de uso**: No se requiere payload. Solo se debe haber iniciado sesión para tener la cookie JWT.
-  - **Ejemplo de respuesta**:
-    ```json
-    {
-        "first_name": "John",
-        "last_name": "Doe",
-        "email": "john.doe@example.com",
-        "age": 30,
-        "role": "user"
-    }
-    ```
-
-## Instalación
-
-Sigue estos pasos para clonar el repositorio, instalar las dependencias y ejecutar el proyecto:
-
-1. Clona el repositorio:
-    ```sh
-    git clone https://github.com/optimuspab/BackendIIPrimeraEntrega.git
-    ```
-
-2. Navega al directorio del proyecto:
-    ```sh
-    cd tu-repositorio
-    ```
-
-3. Instala las dependencias:
-    ```sh
-    npm install
-    ```
-
-4. Configura las variables de entorno en un archivo .env:
-    ```sh
-    MONGO_URI=tu_uri_de_mongodb
-    MONGO_CERT_PATH=./config/cert.pem
-    JWT_SECRET=tu_clave_secreta_para_jwt
-    SESSION_SECRET=tu_clave_secreta_para_sesiones
-
-    Inicia el servidor:
-    ```
-5. Inicia el servidor:
-    ```sh
-    npm start
-    ```
-
-El servidor se ejecutará en `http://localhost:8080`.
-
-## Ejemplo de Uso
-Puedes utilizar Postman o cualquier cliente HTTP para interactuar con las rutas de productos y carritos. Además, las vistas en tiempo real y de home están disponibles en el navegador.
+Sólo el administrador puede crear, actualizar y eliminar productos.
+Sólo el usuario puede agregar productos a su carrito.
+Realizar un sistema de recuperación de contraseña, la cual envíe por medio de un correo un botón que redireccione a una página para restablecer la contraseña (no recuperarla).
+El link del correo debe expirar después de 1 hora de enviado.
+Si se trata de restablecer la contraseña con la misma contraseña del usuario, debe impedirlo e indicarle que no se puede colocar la misma contraseña.
+Si el link expiró, debe redirigir a una vista que le permita generar nuevamente el correo de restablecimiento, el cual contará con una nueva duración de 1 hora.
