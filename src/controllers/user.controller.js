@@ -1,5 +1,5 @@
 import userService from '../services/user.services.js';
-import { createResponse, isValidPassword, createHash } from '../utils/utils.js';
+import { isValidPassword, createHash } from '../utils/utils.js';
 import { generateToken } from '../utils/jwt.utils.js';
 import { sendPasswordResetEmail } from '../services/email.service.js';
 import jwt from 'jsonwebtoken';

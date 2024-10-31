@@ -1,5 +1,6 @@
 import express from 'express';
 import cartManager from '../manager/cartManager.js';
+import { authMiddleware, userOnlyMiddleware } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
@@ -22,7 +23,7 @@ router.get('/:cid', async (req, res, next) => {
   }
 });
 
-router.post('/:cid/product/:pid', async (req, res, next) => {
+router.post('/:cid/product/:pid', authMiddleware, userOnlyMiddleware, async (req, res, next) => {
   try {
     const cartId = req.params.cid;
     const productId = req.params.pid;
