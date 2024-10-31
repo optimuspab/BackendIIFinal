@@ -56,6 +56,16 @@ class ProductDAO {
             return result.rows[0];
         }
     }
+
+    async getProducts(filter = {}, options = {}) {
+        try {
+            const products = await productDAO.findAll(filter, options);
+            return { success: true, products };
+        } catch (error) {
+            return { success: false, message: 'Error al obtener productos: ' + error.message };
+        }
+    }
+
 }
 
 export default ProductDAO;

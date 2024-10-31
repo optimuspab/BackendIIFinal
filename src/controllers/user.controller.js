@@ -66,6 +66,7 @@ export const loginUser = async (req, res, next) => {
       }
     }
 
+    const token = generateToken(user);
     req.session.user = {
       _id: user._id,
       first_name: user.first_name,
@@ -74,17 +75,31 @@ export const loginUser = async (req, res, next) => {
       cartId: user.cart ? user.cart.toString() : null,
     };
 
-    const token = generateToken(user);
-    res.cookie('jwt', token, { httpOnly: true });
-
     if (req.headers['content-type'] === 'application/json') {
-      return res.json({ message: 'Inicio de sesión exitoso', user: req.session.user });
+      return res.json({ message: 'Inicio de sesión exitoso', token, user: req.session.user });
     } else {
+      res.cookie('jwt', token, { httpOnly: true });
       return res.redirect('/products');
     }
   } catch (error) {
     next(error);
   }
+};
+
+export const logoutUser = (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al cerrar sesión' });
+    }
+
+    res.clearCookie('jwt');
+
+    if (req.headers['content-type'] === 'application/json') {
+      return res.json({ message: 'Sesión cerrada exitosamente' });
+    } else {
+      return res.redirect('/login');
+    }
+  });
 };
 
 export const requestPasswordReset = async (req, res) => {

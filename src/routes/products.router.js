@@ -13,7 +13,7 @@ router.post('/bulk', upload.array('thumbnails', 10), async (req, res) => {
 
     const results = [];
     for (const productData of products) {
-        const { title, description, price, stock, category } = productData;
+        const { title, description, price, stock, category, status = true } = productData; // status con valor por defecto
         
         if (!title || !description || !price || !stock || !category) {
             results.push({ success: false, message: 'Campos obligatorios faltantes en un producto.' });
@@ -22,13 +22,24 @@ router.post('/bulk', upload.array('thumbnails', 10), async (req, res) => {
 
         const thumbnails = req.files ? req.files.map(file => `/files/uploads/${file.filename}`) : [];
 
-        const result = await productManager.addProduct(title, description, price, stock, category, thumbnails);
+        const result = await productManager.addProduct(title, description, price, stock, category, thumbnails, status);
         results.push(result);
     }
 
     return res.status(201).json({ results });
 });
 
+router.get('/', async (req, res) => {
+    try {
+      const products = await productManager.getProducts();
+      return res.status(200).json({ products });
+    } catch (error) {
+      console.error('Error al obtener productos:', error);
+      return res.status(500).json({ error: 'Error al obtener productos' });
+    }
+  });
+
+  
 router.get('/:pid', async (req, res) => {
     const id = req.params.pid;
     const result = await productManager.getProductById(id);
@@ -41,14 +52,15 @@ router.get('/:pid', async (req, res) => {
 });
 
 router.post('/', upload.array('thumbnails', 10), async (req, res) => {
-    const { title, description, price, stock, category } = req.body;
-
+    const { title, description, price, stock, category, status = true } = req.body;
+    console.log(req.body);
+    
     if (!title || !description || !price || !stock || !category) {
         return res.status(400).json({ message: 'Todos los campos son obligatorios excepto las imágenes.' });
     }
 
     const thumbnails = req.files.map(file => `/files/uploads/${file.filename}`);
-    const result = await productManager.addProduct(title, description, price, stock, category, thumbnails);
+    const result = await productManager.addProduct(title, description, price, stock, category, thumbnails, status);
 
     if (result.success) {
         return res.status(201).json({

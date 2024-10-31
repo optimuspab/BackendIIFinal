@@ -5,15 +5,19 @@ import path from 'path';
 const productDAO = new ProductDAO();
 
 class ProductManager {
-    async addProduct(title, description, price, stock, category, thumbnails = []) {
-        const newProductData = { title, description, price, stock, category, thumbnails };
+    async addProduct(title, description, price, stock, category, thumbnails = [], status = true) {
+        const newProductData = { title, description, price, stock, category, thumbnails, status };
         try {
             const savedProduct = await productDAO.create(newProductData);
-            return { success: true, message: `Producto agregado con ID ${savedProduct._id || savedProduct.id}`, newProduct: savedProduct };
+            return { 
+                success: true, 
+                message: `Producto agregado con ID ${savedProduct._id || savedProduct.id}`, 
+                newProduct: savedProduct 
+            };
         } catch (error) {
             return { success: false, message: 'Error al agregar producto: ' + error.message };
         }
-    }
+    }    
 
     async getProducts(filter = {}, options = {}) {
         try {

@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser, loginUser } from '../controllers/user.controller.js';
+import { registerUser, loginUser, logoutUser } from '../controllers/user.controller.js';
 import { userValidator } from '../middleware/userValidator.js';
 import UserDTO from'../dto/user.dto.js';
 
@@ -11,14 +11,16 @@ router.get('/login', (req, res) => res.render('login'));
 router.post('/register', userValidator, registerUser);
 router.post('/login', loginUser);
 
-router.get('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).send('Error al cerrar sesión');
-    }
-    res.redirect('/login');
-  });
-});
+//router.get('/logout', (req, res) => {
+//  req.session.destroy((err) => {
+//    if (err) {
+//      return res.status(500).send('Error al cerrar sesión');
+//    }
+//    res.redirect('/login');
+//  });
+//});
+
+router.get('/logout', logoutUser);
 
 router.get('/current', (req, res) => {
   if (!req.session.user) {
