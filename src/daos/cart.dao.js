@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import Cart from './models/cart.model.js';
-import postgresqlDb from '../config/postgresql.js';
+import 'dotenv/config';
 
 const dbType = process.env.DB_TYPE || 'mongo';
 

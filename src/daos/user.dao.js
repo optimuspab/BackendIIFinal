@@ -1,7 +1,11 @@
 import User from './models/user.model.js';
 import postgresqlDb from '../config/postgresql.js';
-
+import 'dotenv/config';
 const dbType = process.env.DB_TYPE || 'mongo';
+
+console.log("first dbType in UserDAO:", process.env.DB_TYPE);
+
+console.log("dbType in UserDAO:", dbType);
 
 export const createUser = async (userData) => {
   if (dbType === 'mongo') {
@@ -11,11 +15,12 @@ export const createUser = async (userData) => {
       const cartResult = await postgresqlDb.query('INSERT INTO carts DEFAULT VALUES RETURNING id');
       const cartId = cartResult.rows[0].id;
 
-      const { first_name, last_name, email, age, password, role } = userData;
+      const { first_name, last_name, email, password, role } = userData;
       const result = await postgresqlDb.query(
-        'INSERT INTO users (first_name, last_name, email, age, password, role, cart_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-        [first_name, last_name, email, age, password, role, cartId]
+        'INSERT INTO users (first_name, last_name, email, password, role, cart_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+        [first_name, last_name, email, password, role, cartId]
       );
+
       return result.rows[0];
     } catch (error) {
       throw new Error("Error al crear usuario en PostgreSQL: " + error.message);
